@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duckyscript Editor</title>
+    <style>
+        /* General Styles */
+        @font-face {
+            font-family: 'mct';
+            src: url('https://raw.githubusercontent.com/ZipherCyprex/hid-update/main/font/mc-tth1.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Eudox';
+            src: url('https://raw.githubusercontent.com/ZipherCyprex/hid-update/main/font/EudoxB.ttf') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Eudox';
+            src: url('https://raw.githubusercontent.com/ZipherCyprex/hid-update/main/font/EudoxL.ttf') format('truetype');
+            font-weight: lighter;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Eudox';
+            src: url('https://raw.githubusercontent.com/ZipherCyprex/hid-update/main/font/EudoxBD.ttf') format('truetype');
+            font-weight: bolder;
+            font-style: normal;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            --textcolor: rgb(239, 232, 255);
+            --bgcolor: linear-gradient(to bottom, #150a1d, #1d002e);
+            --success: rgb(144, 84, 255);
+            --failure: #ec0033;
+            --p: rgb(109, 0, 235);
+            --black: #080808;
+            --bl2: #181818;
+            --pr1: #9600ff;
+            --pr2: #59008c;
+            --pr3: #370057;
+        }
+
+        body {
+            font-family: "Courier New", monospace;
+            background-color: #0f0f0f;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Editor Container */
+        #editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            position: relative;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        header h1 {
+            color: #ff5555;
+            font-size: 1.8em;
+        }
+
+        /* Code Editor with Line Numbers */
+        .editor {
+            flex: 1;
+            display: flex;
+            position: relative;
+            border-top: 3px solid var(--pr1);
+            border-bottom: 3px solid var(--pr1);
+        }
+
+        .line-numbers {
+            width: 50px;
+            background-color: #151718;
+            color: #ffffff60;
+            text-align: right;
+            padding-top: 10px;
+            border-right: 1px solid #ffffff17;
+            font-size: 1.1rem;
+            line-height: 1.5rem;
+        }
+
+        .line-numbers span {
+            display: block;
+        }
+
+        #code-editor {
+            flex: 1;
+            padding: 10px;
+            background-color: #151718;
+            color: #d4d4d4;
+            border: none;
+            resize: none;
+            /* font-family: "Courier New", monospace; */
+            font-size: 1.1rem;
+            line-height: 1.5rem;
+            overflow: hidden;
+        }
+
+        #code-editor:focus {
+            outline: none;
+        }
+
+        /* Autocomplete */
+        #autocomplete-list {
+            position: absolute;
+            top: 40px;
+            left: 60px;
+            background: #2d2d2d;
+            border: 1px solid #444;
+            border-radius: 4px;
+            overflow-y: auto;
+            max-height: 150px;
+            z-index: 1000;
+            display: none;
+            padding: 5px;
+        }
+
+        #autocomplete-list div {
+            padding: 6px 12px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        #autocomplete-list div:hover,
+        #autocomplete-list div.active {
+            background: var(--pr1);
+            color: #fff;
+        }
+
+        #download-btn {
+            margin-top: 10px;
+            padding: 7px 10px;
+            background-color: var(--black);
+            color: #fff;
+            border: solid 2px #353535;
+            font-size: 1rem;
+            font-family: mct;
+            cursor: pointer;
+            align-self: self-start;
+            transition: all 0.3s ease-in-out;
+        }
+        .btom {
+            flex: 0;
+            max-height: 500px;
+            /* background-color: red;  */
+        }
+        #download-btn:hover {
+            background-color: var(--pr3);
+            color: var(--pr1);
+            border: solid 2px var(--pr2);
+        }
+
+        .zped > img{
+            max-width: 300px;
+        }
+        .zped {
+            margin-top: 5px;
+            margin-bottom: 30px;
+            margin-left: 5px;
+            display: flex;
+            align-items: center; /* จัดให้อยู่ตรงกลางแนวแกน Y */
+            justify-content: space-between;
+        }
+        .payload nav {
+            display: inline; /* ทำให้แสดงผลต่อกันในบรรทัดเดียว */
+            color: #fff; /* เพิ่มสีข้อความหากต้องการ */
+            font-family: "Courier New", monospace; /* ตั้งฟอนต์ */
+            margin: 0; 
+            padding: 3px; 
+        }
+        .payload > .headpay {
+            color: #fff;
+            background-color: var(--pr1);
+        }
+        .headlink {
+            font-family: Eudox;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex; 
+            justify-content: end;
+            align-items: center;
+        }
+
+        .headlink li {
+            margin: 0 2px; /* ระยะห่างระหว่างรายการ */
+            color: #414141;
+        }
+        .headlink .lix {
+            color: var(--failure);
+        }
+
+        .headlink a {
+            text-decoration: none; /* ลบขีดเส้นใต้ */
+            color: #ffffff; /* สีข้อความ */
+            padding: 5px 10px; /* เพิ่มช่องว่างรอบข้อความ */
+            display: block; /* ทำให้คลิกได้ทั่วทั้งพื้นที่ */
+            transition: all 0.3s ease-in-out;
+            font-weight: lighter;
+        }
+        
+        .headlink a:hover {
+            color: var(--pr1);
+            font-weight: bolder;
+        }
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.5em;
+            }
+            .headlink {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="editor-container">
+        <header>
+            <h1></h1>
+        </header>
+        <div class="payload">
+            <div class="zped">  
+                <img src="https://img2.pic.in.th/pic/ZipherEditor1.png">
+                <ul class="headlink">
+                    <li><a href="https://zipher.gitbook.io/zipher-hid-or/zipher-get-started/zipher-hid/ducky-script" target="_blank" class="lix">All Command</a></li>
+                    <li>|</li>
+                    <li><a href="https://github.com/ZipherCyprex" target="_blank">Github</a></li>
+                    <li>|</li>
+                    <li><a href="https://discord.com/channels/1267866834678583327/1271203525405184122" target="_blank">Payload</a></li>
+                    <li>|</li>
+                    <li><a href="https://www.facebook.com/profile.php?id=61563542035269" target="_blank">Zipher Page</a></li>
+                    <li>|</li>
+                    <li><a href="https://discord.gg/x9HGCbFEeq" target="_blank">Comunity</a></li>
+                    <li>|</li>
+                </ul>
+            </div>
+            <nav class="headpay">ZipherEditor</nav><nav> > Payload.txt</nav>
+        </div>
+        <div class="editor">
+            <div class="line-numbers" id="line-numbers"></div>
+            <textarea id="code-editor" placeholder="Write Duckyscript here..."></textarea>
+            <div id="autocomplete-list"></div>
+        </div>
+        <div class="btom">
+            <button id="download-btn">Download</button>
+        </div>
+    </div>
+
+    <script>
+        const keywords = [
+            { keyword: "REM ", description: "<Comment>" },
+            { keyword: "DELAY", description: "<int>" },
+            { keyword: "STRING", description: "<text>" },
+            { keyword: "ALT", description: "<function>" },
+            { keyword: "CTRL", description: "<function>" },
+            { keyword: "ENTER", description: "<Press Enter>" },
+            { keyword: "WINDOWS", description: "<Master Key>" },
+            { keyword: "GUI", description: "<Master Key>" },
+            { keyword: "CMD", description: "<Master Key>" },
+            { keyword: "SHIFT", description: "<function>" },
+
+            { keyword: "F1", description: "<function>" },
+            { keyword: "F2", description: "<function>" },
+            { keyword: "F3", description: "<function>" },
+            { keyword: "F4", description: "<function>" },
+            { keyword: "F5", description: "<function>" },
+            { keyword: "F6", description: "<function>" },
+            { keyword: "F7", description: "<function>" },
+            { keyword: "F8", description: "<function>" },
+            { keyword: "F9", description: "<function>" },
+            { keyword: "F10", description: "<function>" },
+            { keyword: "F11", description: "<function>" },
+            { keyword: "F12", description: "<function>" },
+
+            { keyword: "BACKSPACE", description: "<Keyboard>" },
+            { keyword: "HOME", description: "<Keyboard>" },
+            { keyword: "END", description: "<Keyboard>" },
+            { keyword: "INSERT", description: "<Keyboard>" },
+            { keyword: "PAGEUP", description: "<Keyboard>" },
+            { keyword: "PAGEDOWN", description: "<Keyboard>" },
+            { keyword: "UP", description: "<Keyboard> <Arrow>" },
+            { keyword: "DOWN", description: "<Keyboard> <Arrow>" },
+            { keyword: "LEFT", description: "<Keyboard> <Arrow>" },
+            { keyword: "RIGHT", description: "<Keyboard> <Arrow>" },
+            { keyword: "TAB", description: "<Keyboard>" },
+            { keyword: "SPACE", description: "<Keyboard>" },
+            { keyword: "PAUSE", description: "<Keyboard>" },
+            { keyword: "CAPSLOCK", description: "<Keyboard>" },
+            { keyword: "NUMLOCK", description: "<Keyboard>" },
+            { keyword: "PRINTSCREEN", description: "<Keyboard>" },
+            { keyword: "SCROLLOCK", description: "<Mouse>" },
+            { keyword: "COPY", description: "<function>" },
+            { keyword: "CUT", description: "<function>" },
+            { keyword: "PASTE", description: "<function>" },
+            { keyword: "PREV", description: "<Media_Key> <Mobile_Phone>" },
+            { keyword: "PLAY", description: "<Media_Key> <Mobile_Phone>" },
+            { keyword: "STOP", description: "<Media_Key> <Mobile_Phone>" },
+            { keyword: "POWER", description: "<Power> <Mobile_Phone>" },
+            { keyword: "APP", description: "<Menu> <Mobile_Phone>" },
+            { keyword: "VOLUP", description: "<Media_Key> <Mobile_Phone>" },
+            { keyword: "VOLDOWN", description: "<Media_Key> <Mobile_Phone>" },
+            { keyword: "MUTE", description: "<Media_Key> <Mobile_Phone>" },
+
+            { keyword: "SLEEP", description: "<function> <Unknow>" },
+            { keyword: "EDIT", description: "<function> <Unknow>" },
+            { keyword: "COFFEE", description: "<function> <Unknow>" },
+            { keyword: "CALC", description: "<function> <Unknow>" },
+            { keyword: "WWW", description: "<function> <Unknow>" },
+            { keyword: "BACK", description: "<Keyboard>" },
+            { keyword: "FORWARD", description: "<Keyboard>" },
+            { keyword: "VOLDOWN_PC", description: "<Media_Key> <PC>" },
+            { keyword: "VOLUP_PC", description: "<Media_Key> <PC>" },
+            { keyword: "CONTROL", description: "<Keyboard>" },
+            { keyword: "MENU", description: "<Keyboard>" },
+            { keyword: "DELETE", description: "<Keyboard>" },
+            { keyword: "ESC", description: "<Keyboard>" },
+            { keyword: "HELP", description: "<function> <Unknow>" },
+            { keyword: "OPEN", description: "<function> <Unknow>" },
+        ];
+
+        const editor = document.getElementById("code-editor");
+        const lineNumbers = document.getElementById("line-numbers");
+        const autocompleteList = document.getElementById("autocomplete-list");
+        const downloadBtn = document.getElementById("download-btn");
+
+        let currentIndex = -1;
+
+        // Update line numbers dynamically
+        editor.addEventListener("input", updateLineNumbers);
+        editor.addEventListener("scroll", syncScroll);
+
+        function updateLineNumbers() {
+            const lines = editor.value.split("\n").length;
+            lineNumbers.innerHTML = Array.from({ length: lines }, (_, i) => `<span>${i + 1}</span>`).join("");
+        }
+
+        function syncScroll() {
+            lineNumbers.scrollTop = editor.scrollTop;
+        }
+
+        // Autocomplete logic
+        editor.addEventListener("input", function () {
+                const cursorPosition = editor.selectionStart;
+                const textBeforeCursor = editor.value.slice(0, cursorPosition);
+                const currentWord = textBeforeCursor.split(/[\n\s]/).pop();
+                autocompleteList.innerHTML = "";
+
+                if (currentWord.length > 0) {
+                    const matches = keywords.filter(item => item.keyword.startsWith(currentWord.toUpperCase()));
+                    if (matches.length > 0) {
+                        autocompleteList.style.display = "block";
+
+                        // คำนวณตำแหน่ง cursor ใน textarea
+                        const textareaRect = editor.getBoundingClientRect();
+                        const computedStyle = window.getComputedStyle(editor);
+                        const lineHeight = parseFloat(computedStyle.lineHeight);
+
+                        // คำนวณตำแหน่ง cursor บรรทัดปัจจุบัน
+                        const lines = textBeforeCursor.split("\n");
+                        const currentLineIndex = lines.length - 1;
+                        const currentLineText = lines[currentLineIndex];
+
+                        // ใช้ canvas วัดความกว้างข้อความในบรรทัดปัจจุบัน
+                        const canvas = document.createElement("canvas");
+                        const ctx = canvas.getContext("2d");
+                        ctx.font = computedStyle.font;
+                        const textWidth = ctx.measureText(currentLineText).width;
+
+                        // คำนวณตำแหน่ง autocomplete
+                        const topPosition =
+                            textareaRect.top + window.scrollY + currentLineIndex * lineHeight + lineHeight;
+                        const leftPosition =
+                            textareaRect.left + window.scrollX + textWidth + parseFloat(computedStyle.paddingLeft);
+
+                        // ปรับตำแหน่ง autocomplete list
+                        const offsetY = -120; // ปรับค่าขยับขึ้น-ลง (ค่าลบ = ขึ้น, ค่าบวก = ลง)
+                        autocompleteList.style.position = "absolute";
+                        autocompleteList.style.top = `${topPosition + offsetY}px`;
+                        autocompleteList.style.left = `${leftPosition}px`;
+
+                        matches.forEach((match, index) => {
+                            const option = document.createElement("div");
+                            option.textContent = `${match.keyword} ${match.description}`;
+                            option.className = index === currentIndex ? "active" : "";
+                            option.addEventListener("click", function () {
+                                insertText(match.keyword, currentWord.length);
+                                autocompleteList.style.display = "none";
+                            });
+                            autocompleteList.appendChild(option);
+                        });
+                    } else {
+                        autocompleteList.style.display = "none";
+                    }
+                } else {
+                    autocompleteList.style.display = "none";
+                }
+            });
+
+
+        editor.addEventListener("keydown", function (e) {
+            const options = autocompleteList.querySelectorAll("div");
+            if (e.key === "ArrowDown") {
+                e.preventDefault();
+                currentIndex = (currentIndex + 1) % options.length;
+                updateActiveOption(options);
+            } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                currentIndex = (currentIndex - 1 + options.length) % options.length;
+                updateActiveOption(options);
+            } else if (e.key === "Tab" && autocompleteList.style.display === "block") {
+                e.preventDefault();
+                if (currentIndex >= 0 && options[currentIndex]) {
+                    const currentWord = editor.value.slice(0, editor.selectionStart).split(/[\s\n]/).pop();
+                    insertText(options[currentIndex].textContent.split(" ")[0], currentWord.length);
+                    autocompleteList.style.display = "none";
+                }
+            } else if (e.key === "Escape") {
+                autocompleteList.style.display = "none";
+            }
+        });
+
+        function updateActiveOption(options) {
+            options.forEach((option, index) => {
+                option.className = index === currentIndex ? "active" : "";
+            });
+        }
+
+        function insertText(text, lengthToReplace) {
+            const cursorPosition = editor.selectionStart;
+            const beforeCursor = editor.value.slice(0, cursorPosition - lengthToReplace);
+            const afterCursor = editor.value.slice(cursorPosition);
+            editor.value = beforeCursor + text + afterCursor;
+            editor.selectionStart = editor.selectionEnd = beforeCursor.length + text.length;
+            editor.focus();
+            updateLineNumbers();
+        }
+        window.addEventListener("beforeunload", function (event) {
+                const message = "If you reload, the file will be gone. Are you sure you want to reload?";
+                // แสดงข้อความแจ้งเตือน (ส่วนใหญ่เบราว์เซอร์จะแสดงข้อความเริ่มต้นแทนข้อความที่กำหนดเอง)
+                event.preventDefault();
+                event.returnValue = message;
+            });
+        // Download functionality
+            downloadBtn.addEventListener("click", () => {
+                    const text = editor.value;
+
+                    // ขอชื่อไฟล์จากผู้ใช้
+                    const fileName = prompt("Enter the filename:", "payload.txt");
+
+                    // ตรวจสอบว่าผู้ใช้ใส่ชื่อไฟล์หรือไม่
+                    if (!fileName) {
+                        
+                        return;
+                    }
+
+                    const blob = new Blob([text], { type: "text/plain" });
+                    const link = document.createElement("a");
+                    link.href = URL.createObjectURL(blob);
+                    link.download = fileName; // ใช้ชื่อไฟล์ที่ผู้ใช้ระบุ
+                    link.click();
+
+                    // ล้าง URL blob เพื่อประหยัดหน่วยความจำ
+                    URL.revokeObjectURL(link.href);
+                });
+
+
+        // Initialize line numbers
+        updateLineNumbers();
+    </script>
+</body>
+
+</html>
