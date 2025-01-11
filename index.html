@@ -471,27 +471,36 @@
             });
 
 
-        editor.addEventListener("keydown", function (e) {
-            const options = autocompleteList.querySelectorAll("div");
-            if (e.key === "ArrowDown") {
-                e.preventDefault();
-                currentIndex = (currentIndex + 1) % options.length;
-                updateActiveOption(options);
-            } else if (e.key === "ArrowUp") {
-                e.preventDefault();
-                currentIndex = (currentIndex - 1 + options.length) % options.length;
-                updateActiveOption(options);
-            } else if (e.key === "Tab" && autocompleteList.style.display === "block") {
-                e.preventDefault();
-                if (currentIndex >= 0 && options[currentIndex]) {
-                    const currentWord = editor.value.slice(0, editor.selectionStart).split(/[\s\n]/).pop();
-                    insertText(options[currentIndex].textContent.split(" ")[0], currentWord.length);
-                    autocompleteList.style.display = "none";
-                }
-            } else if (e.key === "Escape") {
-                autocompleteList.style.display = "none";
-            }
-        });
+            editor.addEventListener("input", function () {
+                    const options = autocompleteList.querySelectorAll("div");
+                    if (options.length > 0) {
+                        currentIndex = 0; // เลือกตัวเลือกแรกเสมอ
+                        updateActiveOption(options);
+                    }
+                });
+
+                editor.addEventListener("keydown", function (e) {
+                    const options = autocompleteList.querySelectorAll("div");
+                    if (e.key === "Control") {
+                        e.preventDefault();
+                        currentIndex = (currentIndex + 1) % options.length;
+                        updateActiveOption(options);
+                    } else if (e.key === "Shift") {
+                        e.preventDefault();
+                        currentIndex = (currentIndex - 1 + options.length) % options.length;
+                        updateActiveOption(options);
+                    } else if (e.key === "Tab" && autocompleteList.style.display === "block") {
+                        e.preventDefault();
+                        if (currentIndex >= 0 && options[currentIndex]) {
+                            const currentWord = editor.value.slice(0, editor.selectionStart).split(/[\s\n]/).pop();
+                            insertText(options[currentIndex].textContent.split(" ")[0], currentWord.length);
+                            autocompleteList.style.display = "none";
+                        }
+                    } else if (e.key === "Escape") {
+                        autocompleteList.style.display = "none";
+                    }
+                });
+
 
         function updateActiveOption(options) {
             options.forEach((option, index) => {
