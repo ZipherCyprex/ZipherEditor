@@ -233,6 +233,9 @@
             color: var(--pr1);
             font-weight: bolder;
         }
+        #autocomplete-list div span.description {
+            color: #b9b9b9; /* เปลี่ยนสีของ description เป็นสีดำ */
+        }
         /* Responsive Design */
         @media (max-width: 768px) {
             header h1 {
@@ -353,6 +356,16 @@
             { keyword: "Powershell.exe Start-Process cmd -Verb runAs", description: "| <command promt> <Administator>" },
             { keyword: "Add-MpPreference -ExclusionPath c:/  ;", description: "| <powershell> <Bypass AntiVirus>" },
             { keyword: "ALT Y ", description: "| <UAC Bypass>" },
+            
+            {
+                keyword: "Gwmi Win32_PnPEntity -Filter \"Name LIKE '%Mouse%'\" | % { Enable-PnpDevice -InstanceId $_.PNPDeviceID -Confirm:$false ; }",
+                description: " |  <powershell> <Enable mouse>"
+            },
+            {
+                keyword: "Gwmi Win32_PnPEntity -Filter \"Name LIKE '%Mouse%'\" | % { Disable-PnpDevice -InstanceId $_.PNPDeviceID -Confirm:$false ; }",
+                description: " |  <powershell> <Disable mouse>"
+            },
+
             { keyword: "NULL", description: "<function>" },
             { keyword: "NULL", description: "<function>" },
             { keyword: "NULL", description: "<function>" },
@@ -421,12 +434,31 @@
 
                         matches.forEach((match, index) => {
                             const option = document.createElement("div");
-                            option.textContent = `${match.keyword} ${match.description}`;
+
+                            // สร้าง span สำหรับ keyword
+                            const keywordSpan = document.createElement("span");
+                            keywordSpan.textContent = match.keyword;
+                            keywordSpan.className = "keyword";
+
+                            // สร้าง span สำหรับ description
+                            const descriptionSpan = document.createElement("span");
+                            descriptionSpan.textContent = ` ${match.description}`;
+                            descriptionSpan.className = "description";
+
+                            // ใส่ span เข้า div option
+                            option.appendChild(keywordSpan);
+                            option.appendChild(descriptionSpan);
+
+                            // กำหนด class "active" หากเป็น index ปัจจุบัน
                             option.className = index === currentIndex ? "active" : "";
+
+                            // เพิ่ม event listener สำหรับคลิก
                             option.addEventListener("click", function () {
                                 insertText(match.keyword, currentWord.length);
                                 autocompleteList.style.display = "none";
                             });
+
+                            // เพิ่ม option เข้า autocomplete list
                             autocompleteList.appendChild(option);
                         });
                     } else {
